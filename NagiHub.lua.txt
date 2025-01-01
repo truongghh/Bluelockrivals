@@ -1,0 +1,163 @@
+local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+
+local PhantomForcesWindow = Library:NewWindow("NAGI Premium✨")
+
+local Bladeball = PhantomForcesWindow:NewSection("Main=))")
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Grall Ball", function()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(38.44727325439453, 11.166534423828125, -48.344566345214844)
+end)
+---------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Auto GoaL 1", function()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-243.94134521484375, 11.166532516479492, -46.96743392944336)
+end)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Auto GoaL 2", function()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(320.45465087890625, 11.166534423828125, -44.71014404296875)
+end)
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Shoot Gui", function()
+-- Create the GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ 
+-- Create a frame to hold the draggable UI elements
+local DraggableFrame = Instance.new("Frame")
+DraggableFrame.Parent = ScreenGui
+DraggableFrame.Size = UDim2.new(0, 300, 0, 200)
+DraggableFrame.Position = UDim2.new(0.5, -150, 0.5, -100) -- Centered
+DraggableFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+DraggableFrame.BorderSizePixel = 0
+DraggableFrame.Draggable = true
+DraggableFrame.Active = true
+ 
+-- Create the Shoot button
+local ShootButton = Instance.new("TextButton")
+ShootButton.Parent = DraggableFrame
+ShootButton.Text = "Shoot Down Fast"
+ShootButton.Size = UDim2.new(0, 150, 0, 50)
+ShootButton.Position = UDim2.new(0.5, -75, 0, 10) -- Positioned inside DraggableFrame
+ShootButton.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+ShootButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShootButton.Font = Enum.Font.SourceSansBold
+ShootButton.TextSize = 20
+ 
+-- Create a TextBox for custom shot speed input
+local SpeedTextBox = Instance.new("TextBox")
+SpeedTextBox.Parent = DraggableFrame
+SpeedTextBox.Size = UDim2.new(0, 200, 0, 40)
+SpeedTextBox.Position = UDim2.new(0.5, -100, 0.6, 0) -- Below the button
+SpeedTextBox.Text = "300" -- Default value
+SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpeedTextBox.BorderSizePixel = 0
+SpeedTextBox.Font = Enum.Font.SourceSans
+SpeedTextBox.PlaceholderText = "Enter Speed (e.g., 300)"
+SpeedTextBox.TextSize = 20
+ 
+-- Create a label for showing the shot speed
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Parent = DraggableFrame
+SpeedLabel.Size = UDim2.new(0, 200, 0, 50)
+SpeedLabel.Position = UDim2.new(0.5, -100, 0.7, 0) -- Below the textbox
+SpeedLabel.Text = "Shot Speed: " .. SpeedTextBox.Text
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.TextSize = 20
+ 
+-- Update the shot speed label whenever the text changes
+SpeedTextBox.FocusLost:Connect(function()
+    local inputValue = tonumber(SpeedTextBox.Text)
+    if inputValue then
+        SpeedLabel.Text = "Shot Speed: " .. inputValue
+    else
+        SpeedLabel.Text = "Invalid Speed"
+    end
+end)
+ 
+-- Define the shooting functionality
+local function shootFastDown()
+    -- Define the target direction for shooting downwards like a goal
+    local downwardDirection = Vector3.new(0, -50, -100) -- Aim downward and forward
+ 
+    -- Get the shot speed from the text box (converted to a number)
+    local shotPower = tonumber(SpeedTextBox.Text) or 300 -- Default to 300 if input is invalid
+ 
+    -- Fire the server to shoot the ball downward and forward
+    local args = {
+        [1] = shotPower, -- Shot power
+        [4] = downwardDirection -- Target direction (downward)
+    }
+ 
+    game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService"):WaitForChild("RE"):WaitForChild("Shoot"):FireServer(unpack(args))
+ 
+    print("Ball shot downward with speed: " .. shotPower)
+end
+ 
+-- Connect the button to the function
+ShootButton.MouseButton1Click:Connect(shootFastDown)
+ 
+-- Add drag functionality for mobile/PC
+local dragging, dragInput, dragStart, startPos
+ 
+-- Function to start dragging
+DraggableFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = DraggableFrame.Position
+    end
+end)
+ 
+-- Function to drag the frame
+DraggableFrame.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        DraggableFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+ 
+-- Function to stop dragging
+DraggableFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+end)
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("INFNITY STAMINA", function()
+local args = {
+    [1] = 0/0
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("StaminaService"):WaitForChild("RE"):WaitForChild("DecreaseStamina"):FireServer(unpack(args))
+end)
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Bladeball:CreateButton("Speeds", function()
+function isNumber(str)
+  if tonumber(str) ~= nil or str == 'inf' then
+    return true
+  end
+end
+local tspeed = 1
+local hb = game:GetService("RunService").Heartbeat
+local tpwalking = true
+local player = game:GetService("Players")
+local lplr = player.LocalPlayer
+local chr = lplr.Character
+local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+while tpwalking and hb:Wait() and chr and hum and hum.Parent do
+  if hum.MoveDirection.Magnitude > 0 then
+    if tspeed and isNumber(tspeed) then
+      chr:TranslateBy(hum.MoveDirection * tonumber(tspeed))
+    else
+      chr:TranslateBy(hum.MoveDirection)
+    end
+  end
+end
+end)
