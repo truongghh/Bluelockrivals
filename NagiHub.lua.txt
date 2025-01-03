@@ -161,3 +161,99 @@ while tpwalking and hb:Wait() and chr and hum and hum.Parent do
   end
 end
 end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Brings Gui", function()
+getgenv().TeleportBall = false 
+getgenv().onoffgui = true 
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+
+local LocalPlayer = Players.LocalPlayer
+
+
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local ToggleButton = Instance.new("TextButton")
+local Title = Instance.new("TextLabel")
+local OnOffToggleButton = Instance.new("TextButton")
+
+
+ScreenGui.Name = "BallTeleportGUI"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+Frame.Name = "MainFrame"
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Frame.BorderSizePixel = 2
+Frame.Position = UDim2.new(0.4, 0, 0.3, 0)
+Frame.Size = UDim2.new(0, 200, 0, 130)
+Frame.Active = true
+Frame.Draggable = true 
+
+Title.Name = "Title"
+Title.Parent = Frame
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Title.Size = UDim2.new(1, 0, 0.2, 0)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "Bring ball"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 20
+
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = Frame
+ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+ToggleButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+ToggleButton.Size = UDim2.new(0.8, 0, 0.25, 0)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "Teleport: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 18
+
+OnOffToggleButton.Name = "OnOffToggleButton"
+OnOffToggleButton.Parent = Frame
+OnOffToggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+OnOffToggleButton.Position = UDim2.new(0.1, 0, 0.6, 0)
+OnOffToggleButton.Size = UDim2.new(0.8, 0, 0.25, 0)
+OnOffToggleButton.Font = Enum.Font.SourceSansBold
+OnOffToggleButton.Text = "Delete gui"
+OnOffToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OnOffToggleButton.TextSize = 18
+
+
+ToggleButton.MouseButton1Click:Connect(function()
+    getgenv().TeleportBall = not getgenv().TeleportBall
+    ToggleButton.Text = getgenv().TeleportBall and "Bring: ON" or "Bring: OFF"
+end)
+
+OnOffToggleButton.MouseButton1Click:Connect(function()
+    getgenv().onoffgui = not getgenv().onoffgui
+    Frame.Visible = getgenv().onoffgui
+    OnOffToggleButton.Text = getgenv().onoffgui and "Hide GUI" or "Show GUI"
+    OnOffToggleButton.BackgroundColor3 = getgenv().onoffgui and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
+end)
+
+
+function teleportToBall()
+    local ball = workspace:FindFirstChild("Football") or workspace:FindFirstChild("Ball")
+    if ball and ball:IsA("BasePart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = ball.CFrame + Vector3.new(0, 3, 0) 
+    end
+end
+
+
+RunService.RenderStepped:Connect(function()
+    if getgenv().TeleportBall then
+        teleportToBall()
+    end
+end)
+end)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+loadstring(game:HttpGet("https://raw.githubusercontent.com/truongghh/Bluelockrivals/refs/heads/main/NagiHub.lua.txt"))()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/truongghh/Bluelockrivals/refs/heads/main/Nagii%20Hub.txt"))()
