@@ -253,4 +253,39 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 end)
+------------------------------------------------------------------//
+local player = game.Players.LocalPlayer
+
+local function set_flow(desired_flow)
+    if player:FindFirstChild("PlayerStats") then
+        local playerStats = player.PlayerStats
+        if playerStats:FindFirstChild("Flow") then
+            playerStats.Flow.Value = desired_flow
+        end
+    end
+end
+----------------------------------------------------------------//
+Bladeball:CreateButton("Prodigy", function()
+    set_flow("Prodigy")
+end)
+----------------------------------------------------------------//
+Bladeball:CreateButton("Dribbler", function()
+    set_flow("Dribbler")
+end)
+----------------------------------------------------------------//
+Bladeball:CreateButton("Snake", function()
+    set_flow("Snake")
+end)
+------------------------------------------------------------------//
+local localPlayer = game:GetService("Players").LocalPlayer
+-----------------------------------------------------------------//
+Bladeball:CreateButton("Enable Always Flow ON", function()
+    if localPlayer:FindFirstChild("PlayerStats") and localPlayer.PlayerStats:FindFirstChild("InFlow") then
+        localPlayer.PlayerStats.InFlow.Value = true
+        local args = {
+        [1] = "Prodigy"
+    }
+    game:GetService("ReplicatedStorage").Packages.Knit.Services.FlowService.RE.AuraEquip:FireServer(unpack(args))
+    end
+end)
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
