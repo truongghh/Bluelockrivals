@@ -253,39 +253,270 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 end)
-------------------------------------------------------------------//
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Ball To", function()
 local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local ball = game.Workspace:WaitForChild("Football")
 
-local function set_flow(desired_flow)
-    if player:FindFirstChild("PlayerStats") then
-        local playerStats = player.PlayerStats
-        if playerStats:FindFirstChild("Flow") then
-            playerStats.Flow.Value = desired_flow
-        end
+-- Define Goal Boxes
+local homeBox = game.Workspace.AI.Home.DiveBox
+local awayBox = game.Workspace.AI.Away.DiveBox
+local originalBallSize = ball.Size  
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Toggle Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 150, 0, 50)
+button.Position = UDim2.new(0, 10, 0.5, -25)
+button.Text = "GK Mode: OFF"
+button.Parent = gui
+
+-- GK Mode Variables
+local gkMode = false
+local gkLoop = nil
+
+-- Get Player's Team
+local function getTeam()
+    if player.Team and player.Team.Name == "Home" then
+        return "Home", homeBox
+    elseif player.Team and player.Team.Name == "Away" then
+        return "Away", awayBox
+    else
+        return nil, nil
     end
 end
-----------------------------------------------------------------//
-Bladeball:CreateButton("Prodigy", function()
-    set_flow("Prodigy")
-end)
-----------------------------------------------------------------//
-Bladeball:CreateButton("Dribbler", function()
-    set_flow("Dribbler")
-end)
-----------------------------------------------------------------//
-Bladeball:CreateButton("Snake", function()
-    set_flow("Snake")
-end)
-------------------------------------------------------------------//
-local localPlayer = game:GetService("Players").LocalPlayer
------------------------------------------------------------------//
-Bladeball:CreateButton("Enable Always Flow ON", function()
-    if localPlayer:FindFirstChild("PlayerStats") and localPlayer.PlayerStats:FindFirstChild("InFlow") then
-        localPlayer.PlayerStats.InFlow.Value = true
-        local args = {
-        [1] = "Prodigy"
-    }
-    game:GetService("ReplicatedStorage").Packages.Knit.Services.FlowService.RE.AuraEquip:FireServer(unpack(args))
+
+-- **Diving Function**
+local function dive(direction)
+    if direction == "Left" then
+        game:GetService("ReplicatedStorage").Controllers.AnimatonController.DiveL:Fire()
+    elseif direction == "Right" then
+        game:GetService("ReplicatedStorage").Controllers.AnimatonController.DiveR:Fire()
+    elseif direction == "Forward" then
+        game:GetService("ReplicatedStorage").Controllers.AnimatonController.DiveF:Fire()
+    end
+end
+
+-- **Increase Ball Hitbox**
+local function modifyHitbox(enable)
+    if enable then
+        ball.Size = Vector3.new(originalBallSize.X * 4, originalBallSize.Y * 4, originalBallSize.Z * 4) -- **4x Bigger**
+    else
+        ball.Size = originalBallSize -- Reset to normal size
+    end
+end
+
+-- **Main GK Function**
+local function autoGK()
+    while gkMode do
+        if not character or not character.Parent then
+            character = player.Character or player.CharacterAdded:Wait()
+            humanoid = character:WaitForChild("Humanoid")
+            rootPart = character:WaitForChild("HumanoidRootPart")
+        end
+
+        if not ball or not ball.Parent then
+            ball = game.Workspace:WaitForChild("Football")
+        end
+
+        local team, diveBox = getTeam()
+        if team and diveBox and ball then
+            local ballPos = ball.Position
+            local boxPos = diveBox.Position
+            local distance = (ballPos - boxPos).Magnitude
+
+            -- **Stop Ball if it's about to enter the goal**
+            if distance < 15 then
+                ball.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                ball.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            end
+            
+            -- **Teleport to intercept & dive instantly**
+            if distance < 25 then
+                rootPart.Position = Vector3.new(ballPos.X, rootPart.Position.Y, boxPos.Z)  -- Move to block the shot
+                
+                -- **Decide which way to dive based on ball direction**
+                local ballDirection = ball.AssemblyLinearVelocity
+                if math.abs(ballDirection.X) > math.abs(ballDirection.Z) then
+                    if ballDirection.X > 0 then
+                        dive("Right")
+                    else
+                        dive("Left")
+                    end
+                else
+                    dive("Forward")
+                end
+            end
+        end
+        task.wait(0.01) -- **Ultra-fast reaction time**
+    end
+end
+
+-- **Button Click Event**
+button.MouseButton1Click:Connect(function()
+    gkMode = not gkMode
+    button.Text = gkMode and "GK Mode: ON" or "GK Mode: OFF"
+
+    if gkMode then
+        gkLoop = task.spawn(autoGK)
+        modifyHitbox(true)  -- **Bigger hitbox**
+    else
+        if gkLoop then
+            task.cancel(gkLoop)
+        end
+        modifyHitbox(false)  -- **Reset hitbox**
     end
 end)
+end)
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Bóng Magic", function()
+L=game:service'Players'.LocalPlayer;game:service'RunService'.Heartbeat:Connect(function()if L.Character and L.Character:FindFirstChild'HumanoidRootPart'then local B=workspace:FindFirstChild'Football'if B and B.AssemblyLinearVelocity.Magnitude<100 then B:ApplyImpulse((L.Character.HumanoidRootPart.Position+Vector3.new(0,-2.5,0)-B.Position).Unit*18)end end end)
+end)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bladeball:CreateButton("Auto Dẽ Banh", function()
+if not getgenv().AutoDribbleSettings then 
+    getgenv().AutoDribbleSettings={
+        Enabled=true, -- ik what this is
+        range=22} -- change the range if it doesnt work good for you
+end;
+
+local S=getgenv().AutoDribbleSettings;
+local R=game:GetService("ReplicatedStorage");
+local P=game:GetService("Players");
+local U=game:GetService("RunService");
+local B=R.Packages.Knit.Services.BallService.RE.Dribble;
+local A=require(R.Assets.Animations);
+
+if not B or not A then return end;
+
+local L=P.LocalPlayer;
+local C=L.Character or L.CharacterAdded:Wait();
+local H=C:WaitForChild("HumanoidRootPart");
+local M=C:WaitForChild("Humanoid");
+
+local function G(s)
+    if not A.Dribbles[s]then return nil end;
+    local I=Instance.new("Animation");
+    I.AnimationId=A.Dribbles[s];
+    return M:LoadAnimation(I)
+end;
+
+local function T(p)
+    if p==L then return false end;
+    local c=p.Character;
+    if not c then return false end;
+    local V=c.Values and c.Values.Sliding;
+    if V and V.Value==true then return true end;
+    local h=c:FindFirstChildOfClass("Humanoid");
+    if h and h.MoveDirection.Magnitude>0 and h.WalkSpeed==0 then return true end;
+    return false
+end;
+
+local function O(p)
+    if not L.Team or not p.Team then return false end;
+    return L.Team~=p.Team
+end;
+
+local function D(d)
+    if not S.Enabled or not C.Values.HasBall.Value then return end;
+    B:FireServer();
+    local s=L.PlayerStats.Style.Value;
+    local t=G(s);
+    if t then t:Play();t:AdjustSpeed(math.clamp(1+(10-d)/10,1,2))end;
+    local F=workspace:FindFirstChild("Football");
+    if F then F.AssemblyLinearVelocity=Vector3.new(0,0,0);
+    F.CFrame=C.HumanoidRootPart.CFrame*CFrame.new(0,-2.5,0)end
+end;
+
+U.Heartbeat:Connect(function()
+    if not S.Enabled or not C or not H then return end;
+    for _,p in pairs(P:GetPlayers())do 
+        if O(p)and T(p)then 
+            local r=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+            if r then 
+                local d=(r.Position-H.Position).Magnitude;
+                if d<S.range then 
+                    D(d);
+                    break 
+                end 
+            end 
+        end 
+    end 
+end);
+
+-- GUI Code (Added at the End)
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local RangeLabel = Instance.new("TextLabel")
+local RangeInput = Instance.new("TextBox")
+local OnLabel = Instance.new("TextLabel") -- Green "ON" Label
+
+-- Parent GUI to PlayerGui
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Frame Properties
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Frame.Size = UDim2.new(0, 200, 0, 120) -- Increased height for "ON" label
+Frame.Position = UDim2.new(0, 50, 0, 100)
+Frame.BorderSizePixel = 2
+Frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Title
+Title.Parent = Frame
+Title.Text = "Legit Auto Dribble"
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+
+-- Range Label
+RangeLabel.Parent = Frame
+RangeLabel.Position = UDim2.new(0, 10, 0, 40)
+RangeLabel.Size = UDim2.new(0, 180, 0, 20)
+RangeLabel.Text = "Range: " .. tostring(S.range)
+RangeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+RangeLabel.BackgroundTransparency = 1
+RangeLabel.Font = Enum.Font.SourceSansBold
+RangeLabel.TextSize = 16
+
+-- Range Input
+RangeInput.Parent = Frame
+RangeInput.Position = UDim2.new(0, 10, 0, 60)
+RangeInput.Size = UDim2.new(0, 180, 0, 30)
+RangeInput.Text = tostring(S.range)
+RangeInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+RangeInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+RangeInput.Font = Enum.Font.SourceSansBold
+RangeInput.TextSize = 18
+RangeInput.ClearTextOnFocus = false
+
+-- Green "ON" Label
+OnLabel.Parent = Frame
+OnLabel.Position = UDim2.new(0, 10, 0, 95) -- Positioned below input
+OnLabel.Size = UDim2.new(0, 180, 0, 20)
+OnLabel.Text = "ON"
+OnLabel.TextColor3 = Color3.fromRGB(0, 255, 0) -- Green color
+OnLabel.BackgroundTransparency = 1
+OnLabel.Font = Enum.Font.SourceSansBold
+OnLabel.TextSize = 18
+
+-- Update Range on Input Change
+RangeInput.FocusLost:Connect(function()
+    local newRange = tonumber(RangeInput.Text)
+    if newRange and newRange > 0 then
+        S.range = newRange
+        RangeLabel.Text = "Range: " .. tostring(newRange)
+    else
+        RangeInput.Text = tostring(S.range) -- Reset if invalid input
+    end
+end)
+end)
