@@ -4,6 +4,8 @@ local PhantomForcesWindow = Library:NewWindow("NAGI Premium✨")
 
 local Bladeball = PhantomForcesWindow:NewSection("Main=))")
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+local Bllladeball = PhantomForcesWindow:NewSection("Main2=))")
 
 ------------------------------------------------------------------------------------------------------------------------------------
 Bladeball:CreateButton("Grall Ball", function()
@@ -520,3 +522,380 @@ RangeInput.FocusLost:Connect(function()
     end
 end)
 end)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("AUTO GK", function()
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local ball = game.Workspace:WaitForChild("Football")
+
+-- Define DiveBoxes
+local homeBox = game.Workspace.AI.Home.DiveBox
+local awayBox = game.Workspace.AI.Away.DiveBox
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Create Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 150, 0, 50)
+button.Position = UDim2.new(0, 10, 0.5, -25)
+button.Text = "GK Mode: OFF"
+button.Parent = gui
+
+-- GK mode toggle
+local gkMode = false
+local gkLoop = nil
+
+-- Detect Player's Team
+local function getTeam()
+    if player.Team and player.Team.Name == "Home" then
+        return "Home", homeBox
+    elseif player.Team and player.Team.Name == "Away" then
+        return "Away", awayBox
+    else
+        return nil, nil
+    end
+end
+
+-- Function to Save Shots
+local function autoGK()
+    while gkMode do
+        if not character or not character.Parent then
+            character = player.Character or player.CharacterAdded:Wait()
+            humanoid = character:WaitForChild("Humanoid")
+            rootPart = character:WaitForChild("HumanoidRootPart")
+        end
+
+        if not ball or not ball.Parent then
+            ball = game.Workspace:WaitForChild("Football")
+        end
+
+        local team, diveBox = getTeam()
+        if team and diveBox and ball then
+            local ballPos = ball.Position
+            local boxPos = diveBox.Position
+            local distance = (ballPos - boxPos).Magnitude
+
+            -- **If the ball is about to enter the goal, stop it completely**
+            if distance < 10 then
+                ball.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                ball.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            end
+        end
+        task.wait(0.02) -- Fast reaction time
+    end
+end
+
+-- Button Click Event
+button.MouseButton1Click:Connect(function()
+    gkMode = not gkMode
+    button.Text = gkMode and "GK Mode: ON" or "GK Mode: OFF"
+
+    if gkMode then
+        gkLoop = task.spawn(autoGK)
+    else
+        if gkLoop then
+            task.cancel(gkLoop) -- Stop the function completely
+        end
+    end
+end)
+end)
+------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("Menu2", function()
+-- Create the GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create a draggable frame
+local DraggableFrame = Instance.new("Frame")
+DraggableFrame.Parent = ScreenGui
+DraggableFrame.Size = UDim2.new(0, 300, 0, 250)
+DraggableFrame.Position = UDim2.new(0.5, -150, 0.5, -125) -- Centered
+DraggableFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+DraggableFrame.BorderSizePixel = 0
+DraggableFrame.Draggable = true
+DraggableFrame.Active = true
+
+-- Create "Grab Ball" button (Top Center)
+local GrabBallButton = Instance.new("TextButton")
+GrabBallButton.Parent = DraggableFrame
+GrabBallButton.Text = "Grab Ball"
+GrabBallButton.Size = UDim2.new(0, 120, 0, 40)
+GrabBallButton.Position = UDim2.new(0.5, -60, 0.1, 0) -- Top Center
+GrabBallButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+GrabBallButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+GrabBallButton.Font = Enum.Font.SourceSansBold
+GrabBallButton.TextSize = 20
+
+-- Create "SCORE (HOME)" button (Top Left) with (Y) for PC users
+local HomeGoalButton = Instance.new("TextButton")
+HomeGoalButton.Parent = ScreenGui
+HomeGoalButton.Text = "SCORE (HOME) (Y)"
+HomeGoalButton.Size = UDim2.new(0, 180, 0, 40)
+HomeGoalButton.Position = UDim2.new(0, 10, 0, 10) -- Top Left Corner
+HomeGoalButton.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+HomeGoalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HomeGoalButton.Font = Enum.Font.SourceSansBold
+HomeGoalButton.TextSize = 18
+
+-- Create "SCORE (AWAY)" button (Top Right) with (T) for PC users
+local AwayGoalButton = Instance.new("TextButton")
+AwayGoalButton.Parent = ScreenGui
+AwayGoalButton.Text = "SCORE (AWAY) (T)"
+AwayGoalButton.Size = UDim2.new(0, 180, 0, 40)
+AwayGoalButton.Position = UDim2.new(1, -190, 0, 10) -- Top Right Corner
+AwayGoalButton.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+AwayGoalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AwayGoalButton.Font = Enum.Font.SourceSansBold
+AwayGoalButton.TextSize = 18
+
+-- Label for status
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = DraggableFrame
+StatusLabel.Text = "Waiting for action..."
+StatusLabel.Size = UDim2.new(1, 0, 0.2, 0)
+StatusLabel.Position = UDim2.new(0, 0, 0.7, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusLabel.TextSize = 16
+StatusLabel.Font = Enum.Font.SourceSansBold
+
+-- Label for "Made by Truong"
+local CreditLabel = Instance.new("TextLabel")
+CreditLabel.Parent = DraggableFrame
+CreditLabel.Text = "Made by @Elnanocruz2"
+CreditLabel.Size = UDim2.new(1, 0, 0.2, 0)
+CreditLabel.Position = UDim2.new(0, 0, 0.9, 0)
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CreditLabel.TextSize = 14
+CreditLabel.Font = Enum.Font.SourceSansBold
+
+-- Function to grab the ball
+local function grabBall()
+    local position = Vector3.new(38.3548, 11.1665, -48.4440) -- Ball's spawn position
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+    hrp.CFrame = CFrame.new(position) -- Teleport to the ball's position
+    StatusLabel.Text = "Ball grabbed!"
+end
+
+-- Function to calculate shooting power dynamically with even more precision
+local function calculateShotPower(goalPosition)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    -- Calculate the distance between the player and the goal
+    local distance = (goalPosition - hrp.Position).Magnitude
+
+    -- Improved formula for shot power calculation
+    local shotPower = math.clamp(distance * 0.7, 200, 1000) -- Adjusted multiplier for more precise power calculation
+
+    return shotPower
+end
+
+-- Function to shoot the ball directly toward a goal with precision
+local function autoShoot(goalPosition)
+    local shotPower = calculateShotPower(goalPosition) -- Calculate the required power
+
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    -- Calculate the direction to the goal
+    local shootDirection = (goalPosition - hrp.Position).Unit -- Direction to goal
+
+    -- Make sure the shot is horizontal (flat) by setting Y component to 0
+    shootDirection = Vector3.new(shootDirection.X, 0, shootDirection.Z).Unit
+
+    -- Fire the shot with the calculated power and adjusted direction
+    local args = {
+        [1] = shotPower, -- Dynamic shot power (200 - 1000)
+        [4] = shootDirection * 100 -- Direction towards the goal (horizontal)
+    }
+
+    -- Trigger the server to make the shot
+    game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService"):WaitForChild("RE"):WaitForChild("Shoot"):FireServer(unpack(args))
+    print("Shot made towards goal with power: " .. shotPower)
+
+    StatusLabel.Text = "Shot made with power: " .. shotPower
+end
+
+-- SCORE (HOME) logic for mobile and PC
+HomeGoalButton.MouseButton1Click:Connect(function()
+    local homeGoalPosition = Vector3.new(-243.3819, 11.1665, -50.3188) -- Replace with the actual position of the home goal
+    StatusLabel.Text = "Shooting at Home Goal..."
+    autoShoot(homeGoalPosition)
+end)
+
+-- SCORE (AWAY) logic for mobile and PC
+AwayGoalButton.MouseButton1Click:Connect(function()
+    local awayGoalPosition = Vector3.new(319.6294, 11.1665, -62.0231) -- Replace with the actual position of the away goal
+    StatusLabel.Text = "Shooting at Away Goal..."
+    autoShoot(awayGoalPosition)
+end)
+
+-- Connect the "Grab Ball" button
+GrabBallButton.MouseButton1Click:Connect(grabBall)
+
+-- Add drag functionality for mobile/PC
+local dragging, dragInput, dragStart, startPos
+
+DraggableFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = DraggableFrame.Position
+    end
+end)
+
+DraggableFrame.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        DraggableFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+DraggableFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- PC Keyboard logic to trigger shooting using keys (Y for Home and T for Away)
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if gameProcessedEvent then return end
+
+    if input.KeyCode == Enum.KeyCode.Y then
+        local homeGoalPosition = Vector3.new(-243.3819, 11.1665, -50.3188)
+        StatusLabel.Text = "Shooting at Home Goal (via Keyboard)..."
+        autoShoot(homeGoalPosition)
+    elseif input.KeyCode == Enum.KeyCode.T then
+        local awayGoalPosition = Vector3.new(319.6294, 11.1665, -62.0231)
+        StatusLabel.Text = "Shooting at Away Goal (via Keyboard)..."
+        autoShoot(awayGoalPosition)
+    end
+end)
+end)
+------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("Bring Ball V2", function()
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+local ball = game.Workspace:FindFirstChild("Football")
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Function to create buttons
+local function createButton(name, position, text)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 150, 0, 50)
+    button.Position = position
+    button.Text = text
+    button.Parent = gui
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BorderSizePixel = 2
+    button.Font = Enum.Font.SourceSansBold
+    button.TextScaled = true
+    return button
+end
+
+-- Create GUI Buttons
+local attractBallButton = createButton("AttractBall", UDim2.new(0, 10, 0.5, -25), "Attract Ball: OFF")
+local defenseAssistButton = createButton("DefenseAssist", UDim2.new(0, 10, 0.5, -80), "Defense Assist: OFF")
+
+local attractBall = false
+local defenseAssist = false
+
+-- Function to move the ball towards the player
+local function moveBallToPlayer()
+    while attractBall do
+        ball = game.Workspace:FindFirstChild("Football")
+        if ball then
+            local playerPosition = rootPart.Position
+            local ballPosition = ball.Position
+            local distance = (playerPosition - ballPosition).Magnitude
+
+            -- Stop movement once the ball reaches the player
+            if distance < 3 then
+                attractBall = false
+                attractBallButton.Text = "Attract Ball: OFF"
+                ball.AssemblyLinearVelocity = Vector3.zero
+                ball.AssemblyAngularVelocity = Vector3.zero
+                return
+            end
+
+            -- Strong pull towards player
+            local direction = (playerPosition - ballPosition).Unit
+            ball.AssemblyLinearVelocity = direction * 350  
+
+            -- Opponent avoidance
+            for _, opponent in ipairs(game.Players:GetPlayers()) do
+                if opponent.Team ~= player.Team and opponent.Character and opponent.Character:FindFirstChild("HumanoidRootPart") then
+                    local opponentPos = opponent.Character.HumanoidRootPart.Position
+                    if (ballPosition - opponentPos).Magnitude < 15 then
+                        local avoidance = (ballPosition - opponentPos).Unit * 200
+                        ball.AssemblyLinearVelocity = ball.AssemblyLinearVelocity + avoidance
+                    end
+                end
+            end
+        end
+        task.wait(0.01)
+    end
+end
+
+-- Function for defense assist
+local function defenseAssistFunction()
+    while defenseAssist do
+        local closestOpponent = nil
+        local closestDistance = math.huge  
+
+        for _, opponent in ipairs(game.Players:GetPlayers()) do
+            if opponent ~= player and opponent.Team ~= player.Team and opponent.Character and opponent.Character:FindFirstChild("HumanoidRootPart") then
+                local opponentPos = opponent.Character.HumanoidRootPart.Position
+                local distance = (rootPart.Position - opponentPos).Magnitude
+
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestOpponent = opponent.Character.HumanoidRootPart
+                end
+            end
+        end
+
+        if closestOpponent then
+            local direction = (closestOpponent.Position - rootPart.Position).Unit
+            local newPosition = rootPart.Position + direction * 1.5  -- Slower movement
+            rootPart.CFrame = CFrame.lookAt(rootPart.Position, closestOpponent.Position)
+            humanoid:Move(Vector3.new(direction.X, 0, direction.Z), true)
+        end
+
+        task.wait(0.1)
+    end
+end
+
+-- Button Toggles
+attractBallButton.MouseButton1Click:Connect(function()
+    attractBall = not attractBall
+    attractBallButton.Text = attractBall and "Attract Ball: ON" or "Attract Ball: OFF"
+    if attractBall then task.spawn(moveBallToPlayer) end
+end)
+
+defenseAssistButton.MouseButton1Click:Connect(function()
+    defenseAssist = not defenseAssist
+    defenseAssistButton.Text = defenseAssist and "Defense Assist: ON" or "Defense Assist: OFF"
+    if defenseAssist then task.spawn(defenseAssistFunction) end
+end)
+end)
+------------------------------------------------------------------------------------------------------------------------------------//
