@@ -898,4 +898,117 @@ defenseAssistButton.MouseButton1Click:Connect(function()
     if defenseAssist then task.spawn(defenseAssistFunction) end
 end)
 end)
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("Auto Gk V2", function()
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local ball = game.Workspace:WaitForChild("Football")
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Ensure GUI is visible
+gui.ResetOnSpawn = false
+
+-- Create "Lock to Ball (GK)" Button
+local lockToBallButton = Instance.new("TextButton")
+lockToBallButton.Size = UDim2.new(0, 150, 0, 50)
+lockToBallButton.Position = UDim2.new(0, 10, 0, 10)
+lockToBallButton.Text = "Lock to Ball (GK): OFF"
+lockToBallButton.Parent = gui
+lockToBallButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+lockToBallButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+lockToBallButton.BorderSizePixel = 2
+
+-- States
+local lockToBall = false
+local originalBallSize = ball.Size
+local hitboxMultiplier = 3
+
+-- Your Goal Position
+local myGoal = game.Workspace.AI.Home.DiveBox.Position
+
+-- Stop Ball Function
+local function stopBallCompletely()
+    if ball then
+        ball.AssemblyLinearVelocity = Vector3.zero
+        ball.AssemblyAngularVelocity = Vector3.zero
+        ball.Velocity = Vector3.zero
+        ball.RotVelocity = Vector3.zero
+        ball.Anchored = true
+        task.wait(0.1)
+        ball.Anchored = false
+    end
+end
+
+-- Modify Ball Hitbox
+local function modifyBallSize(enable)
+    if enable then
+        ball.Size = originalBallSize * hitboxMultiplier
+    else
+        ball.Size = originalBallSize
+    end
+end
+
+-- Lock to Ball (GK) + Improved Diving System
+local function lockToBallFunction()
+    local animController = game:GetService("ReplicatedStorage").Controllers.AnimatonController
+    while lockToBall do
+        if ball then
+            rootPart.CFrame = CFrame.lookAt(rootPart.Position, ball.Position)
+
+            -- If the ball is near **your** goal, teleport & dive
+            if (ball.Position - myGoal).Magnitude < 40 then
+                rootPart.CFrame = CFrame.new(ball.Position + Vector3.new(0, 3, 0))
+                
+                -- **Prevent Unwanted Jumping**
+                humanoid.JumpPower = 0
+                humanoid:Move(Vector3.new(0, -10, 0)) -- Forces the player downward to stop extra jump
+
+                stopBallCompletely()
+
+                -- Detect where the ball is going
+                local ballVelocity = ball.AssemblyLinearVelocity
+                local ballSpeed = ballVelocity.Magnitude
+                local ballDirection = ballVelocity.Unit
+
+                -- **Instant Reaction Diving**
+                if ballSpeed > 0 then
+                    if ballDirection.X > 0.5 then
+                        animController.DiveR:Play() -- Dive Right
+                    elseif ballDirection.X < -0.5 then
+                        animController.DiveL:Play() -- Dive Left
+                    elseif ballDirection.Y > 0.5 then
+                        animController.DiveF:Play() -- Dive Forward
+                    else
+                        animController.DiveF:Play() -- Default to Forward
+                    end
+                end
+
+                -- **Re-enable Jump after Catching**
+                task.wait(0.5)
+                humanoid.JumpPower = 50 -- Reset to normal jump power
+            end
+        end
+        task.wait(0.01) -- **Super Fast Reaction Time**
+    end
+end
+
+-- "Lock to Ball (GK)" Button Toggle
+lockToBallButton.MouseButton1Click:Connect(function()
+    lockToBall = not lockToBall
+    lockToBallButton.Text = lockToBall and "Lock to Ball (GK): ON" or "Lock to Ball (GK): OFF"
+    
+    -- **Modify Hitbox Properly**
+    modifyBallSize(lockToBall)
+
+    -- **Start/Stop the Lock-to-Ball Function**
+    if lockToBall then 
+        task.spawn(lockToBallFunction) 
+    end
+end)
+end)
 ------------------------------------------------------------------------------------------------------------------------------------//
