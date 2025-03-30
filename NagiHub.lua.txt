@@ -921,7 +921,7 @@ lockToBallButton.Text = "Lock to Ball (GK): OFF"
 lockToBallButton.Parent = gui
 lockToBallButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 lockToBallButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-lockToBallButton.BorderSizePixel = 2
+lockToBallButton.BorderSizePixel = 1
 
 -- States
 local lockToBall = false
@@ -1010,5 +1010,155 @@ lockToBallButton.MouseButton1Click:Connect(function()
         task.spawn(lockToBallFunction) 
     end
 end)
+end)
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("Hitbox GK", function()
+-- Variables
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+local hitboxButton = Instance.new("TextButton")
+local tpButton = Instance.new("TextButton")
+local watermark = Instance.new("TextLabel") -- เพิ่มลายน้ำ
+local isHitboxEnabled = false
+
+-- Find the Hitbox MeshPart
+local function findHitbox()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hitbox = character:FindFirstChild("Hitbox")
+    
+    if not hitbox then
+        -- If Hitbox doesn't exist, create it
+        hitbox = Instance.new("MeshPart")
+        hitbox.Name = "Hitbox"
+        hitbox.Transparency = 0.5
+        hitbox.CanCollide = false
+        hitbox.Material = Enum.Material.Neon
+        hitbox.Color = Color3.fromRGB(255, 0, 0) -- Red color for visibility
+        hitbox.Size = Vector3.new(3.5, 3.5, 3.5)
+        hitbox.Parent = character
+    end
+    
+    return hitbox
+end
+
+-- Find the Football MeshPart
+local function findFootball()
+    local football = workspace:FindFirstChild("Football")
+    if football and football:IsA("MeshPart") then
+        return football
+    end
+    return nil
+end
+
+-- Setup GUI
+gui.Name = "GameGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player.PlayerGui
+
+-- Create Hitbox Button - ปรับขนาดให้เล็กลง
+hitboxButton.Name = "Hitbox15"
+hitboxButton.Size = UDim2.new(0, 80, 0, 40) -- ลดขนาดจาก 100x50 เป็น 80x40
+hitboxButton.Position = UDim2.new(0, 10, 0.5, -20) -- ปรับตำแหน่งให้เหมาะสม
+hitboxButton.Text = "Hitbox: OFF"
+hitboxButton.BackgroundColor3 = Color3.new(0, 0, 0) -- Black when off
+hitboxButton.TextColor3 = Color3.new(1, 1, 1) -- White text
+hitboxButton.Font = Enum.Font.SourceSansBold
+hitboxButton.TextSize = 16 -- ลดขนาดตัวอักษรจาก 18 เป็น 16
+hitboxButton.BorderSizePixel = 2
+hitboxButton.BorderColor3 = Color3.new(0.5, 0.5, 0.5)
+hitboxButton.Parent = gui
+
+-- Create TP Button - ปรับขนาดให้เล็กลง
+tpButton.Name = "tpButton"
+tpButton.Size = UDim2.new(0, 80, 0, 40) -- ลดขนาดจาก 100x50 เป็น 80x40
+tpButton.Position = UDim2.new(0, 10, 0.5, -70) -- ปรับตำแหน่งให้เหมาะสม
+tpButton.Text = "tp"
+tpButton.BackgroundColor3 = Color3.new(0, 0, 1) -- Blue button
+tpButton.TextColor3 = Color3.new(1, 1, 1) -- White text
+tpButton.Font = Enum.Font.SourceSansBold
+tpButton.TextSize = 16 -- ลดขนาดตัวอักษรจาก 18 เป็น 16
+tpButton.BorderSizePixel = 2
+tpButton.BorderColor3 = Color3.new(0.5, 0.5, 0.5)
+tpButton.Parent = gui
+
+
+
+-- Toggle Hitbox Function
+local function toggleHitbox()
+    local hitbox = findHitbox()
+    
+    if isHitboxEnabled then
+        -- Disable hitbox
+        hitbox.Size = Vector3.new(2.5, 2.5, 2.5)
+        hitbox.Transparency = 1 -- Hide hitbox
+        hitboxButton.Text = "Hitbox: OFF"
+        hitboxButton.BackgroundColor3 = Color3.new(0, 0, 0) -- Black
+        isHitboxEnabled = false
+    else
+        -- Enable hitbox
+        hitbox.Size = Vector3.new(15, 15, 15)
+        hitbox.Transparency = 0.5 -- Show hitbox
+        hitboxButton.Text = "Hitbox: ON"
+        hitboxButton.BackgroundColor3 = Color3.new(1, 1, 1) -- White
+        isHitboxEnabled = true
+    end
+end
+
+-- Teleport to Football Function
+local function teleportToFootball()
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    local football = findFootball()
+    if football then
+        humanoidRootPart.CFrame = football.CFrame
+    else
+        -- Show notification if football not found
+        local notification = Instance.new("TextLabel")
+        notification.Size = UDim2.new(0, 200, 0, 50)
+        notification.Position = UDim2.new(0.5, -100, 0.8, 0)
+        notification.Text = "Football not found!"
+        notification.BackgroundColor3 = Color3.new(1, 0, 0)
+        notification.TextColor3 = Color3.new(1, 1, 1)
+        notification.Font = Enum.Font.SourceSansBold
+        notification.TextSize = 18
+        notification.Parent = gui
+        
+        -- Remove notification after 2 seconds
+        spawn(function()
+            wait(2)
+            notification:Destroy()
+        end)
+    end
+end
+
+-- Connect button clicks
+hitboxButton.MouseButton1Click:Connect(toggleHitbox)
+tpButton.MouseButton1Click:Connect(teleportToFootball)
+
+-- Handle character respawn
+player.CharacterAdded:Connect(function()
+    wait(1) -- Wait for character to fully load
+    if isHitboxEnabled then
+        local hitbox = findHitbox()
+        hitbox.Size = Vector3.new(15, 15, 15)
+        hitbox.Transparency = 0.5
+    end
+end)
+
+-- Mobile compatibility
+if game:GetService("UserInputService").TouchEnabled then
+    hitboxButton.Size = UDim2.new(0, 100, 0, 50) -- ลดขนาดจาก 120x60 เป็น 100x50
+    hitboxButton.TextSize = 22 -- ลดขนาดตัวอักษรจาก 24 เป็น 22
+    tpButton.Size = UDim2.new(0, 100, 0, 50) -- ลดขนาดจาก 120x60 เป็น 100x50
+    tpButton.TextSize = 22 -- ลดขนาดตัวอักษรจาก 24 เป็น 22
+    watermark.Size = UDim2.new(0, 180, 0, 40) -- คงเดิม
+    watermark.TextSize = 26 -- คงเดิม
+end
+
+print("Nahi Hub loaded successfully!")
 end)
 ------------------------------------------------------------------------------------------------------------------------------------//
