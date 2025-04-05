@@ -1161,4 +1161,215 @@ end
 
 print("Nahi Hub loaded successfully!")
 end)
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("Control ball", function()
+-- Football Control Script (Fixed version)
+-- Creates a toggle button that allows the player to control a Football object
+-- Naxin Hub
+ 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+ 
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+ 
+-- Remove existing GUI if it exists (prevents duplicate buttons)
+if playerGui:FindFirstChild("FootballControlGui") then
+    playerGui:FindFirstChild("FootballControlGui"):Destroy()
+end
+ 
+-- Create GUI elements
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FootballControlGui"
+screenGui.Parent = playerGui
+ 
+local controlButton = Instance.new("TextButton")
+controlButton.Name = "FootballControlButton"
+controlButton.Size = UDim2.new(0, 100, 0, 30) -- Smaller button size
+controlButton.Position = UDim2.new(0, 10, 0.5, 0) -- Left edge of screen, vertically centered
+controlButton.AnchorPoint = Vector2.new(0, 0.5) -- Anchor to ensure proper positioning
+controlButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255) -- Blue color
+controlButton.Text = "OFF"
+controlButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+controlButton.TextScaled = true
+controlButton.BorderSizePixel = 2
+controlButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+controlButton.Parent = screenGui
+ 
+
+ 
+-- Variables for control state
+local controllingFootball = false
+local football = workspace:FindFirstChild("Football") -- Find the Football MeshPart
+local debounce = false -- Prevent button spam
+ 
+-- Check if Football exists and create it if not
+if not football then
+    football = Instance.new("MeshPart")
+    football.Name = "Football"
+    football.MeshId = "rbxassetid://5785886369" -- Basic ball mesh
+    football.Size = Vector3.new(2, 2, 2)
+    football.Material = Enum.Material.Plastic
+    football.Position = workspace.CurrentCamera.CFrame.Position + Vector3.new(0, 5, -10)
+    football.Anchored = false
+    football.CanCollide = true
+    football.Parent = workspace
+ 
+    -- Add necessary physics properties
+    local bodyForce = Instance.new("BodyForce")
+    bodyForce.Name = "HoverForce"
+    bodyForce.Force = Vector3.new(0, football:GetMass() * workspace.Gravity * 0.98, 0) -- Slight hover effect
+    bodyForce.Parent = football
+end
+ 
+-- Function to handle button toggle with debounce
+local function toggleFootballControl()
+    if debounce then return end
+    debounce = true
+ 
+    controllingFootball = not controllingFootball
+ 
+    if controllingFootball then
+        controlButton.Text = "ON"
+        controlButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green when ON
+ 
+        -- Move camera to football immediately
+        workspace.CurrentCamera.CameraSubject = football
+ 
+        -- Make sure football is not anchored
+        football.Anchored = false
+    else
+        controlButton.Text = "à¸„à¸§à¸à¸„à¸¸à¸¡à¸¥à¸¹à¸à¸à¸­à¸¥OFF"
+        controlButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255) -- Blue when OFF
+ 
+        -- Reset camera to player
+        local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            workspace.CurrentCamera.CameraSubject = humanoid
+        end
+ 
+        -- Reset football velocity
+        football.Velocity = Vector3.new(0, 0, 0)
+    end
+ 
+    -- Reset debounce after a short delay
+    wait(0.3) -- Prevent rapid toggling but not too slow
+    debounce = false
+end
+ 
+-- Connect button to toggle function
+controlButton.MouseButton1Click:Connect(toggleFootballControl)
+controlButton.TouchTap:Connect(toggleFootballControl)
+ 
+-- Function to get proper movement direction
+local function getMovementDirection()
+    local character = player.Character
+    if not character then return Vector3.new(0, 0, 0) end
+ 
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return Vector3.new(0, 0, 0) end
+ 
+    local moveDir = humanoid.MoveDirection
+ 
+    -- If moveDir is zero but we have input, use camera direction instead
+    if moveDir.Magnitude < 0.1 then
+        local camera = workspace.CurrentCamera
+        local _, _, look = camera.CFrame:ToOrientation()
+ 
+        -- Check directional input
+        local moveVector = Vector3.new(0, 0, 0)
+ 
+        -- Check for movement keys and touchscreen movement thumbstick
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) or humanoid.MoveDirection.Z < 0 then
+            moveVector = moveVector + (Vector3.new(0, 0, -1))
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) or humanoid.MoveDirection.Z > 0 then
+            moveVector = moveVector + (Vector3.new(0, 0, 1))
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) or humanoid.MoveDirection.X < 0 then
+            moveVector = moveVector + (Vector3.new(-1, 0, 0))
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) or humanoid.MoveDirection.X > 0 then
+            moveVector = moveVector + (Vector3.new(1, 0, 0))
+        end
+ 
+        if moveVector.Magnitude > 0 then
+            -- Normalize the movement vector
+            moveVector = moveVector.Unit
+ 
+            -- Rotate the movement vector according to the camera's orientation
+            local cf = CFrame.Angles(0, look, 0)
+            moveDir = cf:VectorToWorldSpace(moveVector)
+        end
+    end
+ 
+    return moveDir
+end
+ 
+-- Handle Football movement when controlled
+local speed = 100 -- Increased speed as requested
+ 
+RunService:BindToRenderStep("FootballControl", Enum.RenderPriority.Character.Value + 1, function()
+    if controllingFootball and football then
+        -- Set camera to follow football
+        workspace.CurrentCamera.CameraSubject = football
+ 
+        -- Get movement direction
+        local moveDirection = getMovementDirection()
+ 
+        -- Apply movement to the football with improved height control
+        if moveDirection.Magnitude > 0 then
+            -- Add upward force to make the ball fly a bit
+            local flyVector = moveDirection * speed
+            flyVector = Vector3.new(flyVector.X, math.max(0.5, flyVector.Y), flyVector.Z)
+ 
+            -- Apply the velocity
+            football.Velocity = Vector3.new(flyVector.X, football.Velocity.Y + 2, flyVector.Z)
+ 
+            -- Make sure it stays slightly above ground
+            local rayParams = RaycastParams.new()
+            rayParams.FilterType = Enum.RaycastFilterType.Exclude
+            rayParams.FilterDescendantsInstances = {football}
+ 
+            local rayResult = workspace:Raycast(football.Position, Vector3.new(0, -5, 0), rayParams)
+            if rayResult and rayResult.Distance < 2 then
+                football.Velocity = Vector3.new(football.Velocity.X, 10, football.Velocity.Z)
+            end
+        else
+            -- Apply small drag when not actively moving
+            football.Velocity = football.Velocity * 0.98
+        end
+    end
+end)
+ 
+-- Show initial message
+local function createInfoMessage()
+    local infoFrame = Instance.new("Frame")
+    infoFrame.Size = UDim2.new(0.6, 0, 0.2, 0)
+    infoFrame.Position = UDim2.new(0.2, 0, 0.3, 0)
+    infoFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    infoFrame.BackgroundTransparency = 0.5
+    infoFrame.BorderSizePixel = 2
+    infoFrame.Parent = screenGui
+ 
+    local infoText = Instance.new("TextLabel")
+    infoText.Size = UDim2.new(1, -20, 1, -20)
+    infoText.Position = UDim2.new(0, 10, 0, 10)
+    infoText.BackgroundTransparency = 1
+    infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    infoText.TextScaled = true
+    infoText.Text = "OFF' "
+    infoText.Parent = infoFrame
+ 
+    game:GetService("Debris"):AddItem(infoFrame, 5) -- Remove after 5 seconds
+end
+ 
+createInfoMessage()
+end)
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+Bllladeball:CreateButton("Không Hồi Chiêu", function()
+local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+end)
 ------------------------------------------------------------------------------------------------------------------------------------//
